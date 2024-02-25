@@ -1,6 +1,8 @@
 from DataLoader import DataLoader
 from DataGenerator import DataGenerator
+from DataElaborator import DataElaborator
 import pandas as pd
+import datetime
 
 'CUSTOMER_ID',
 'x_customer_id', 'y_customer_id',
@@ -27,7 +29,8 @@ class Customer ():
 
 
 if __name__ == "__main__":
-    conn = DataLoader("neo4j+s://8c0e259c.databases.neo4j.io", "neo4j", "RspDn6pEiaKrLCm9GuhD5dnCWGzqQC3Z05uoCvFVVJw")
+    dl = DataLoader("neo4j+s://8c0e259c.databases.neo4j.io", "neo4j", "RspDn6pEiaKrLCm9GuhD5dnCWGzqQC3Z05uoCvFVVJw")
+    de = DataElaborator("neo4j+s://8c0e259c.databases.neo4j.io", "neo4j", "RspDn6pEiaKrLCm9GuhD5dnCWGzqQC3Z05uoCvFVVJw")
     dg_50MB = DataGenerator(53000000)
     # dg_100MB = DataGenerator(106000000)
     # dg_200MB = DataGenerator(212000000)
@@ -37,11 +40,17 @@ if __name__ == "__main__":
     # xy_terminals = np.array([[5, 2], [1, 2], [20, 10]])
     # result = xy_custom - xy_terminals
 
+    # result = de.getCustomerLastMonthLimit()
+    # print(result)
+
+    # result = de.getFraudulantTransactionsPerTerminal()
+    # print(result)
+
     customers = dg_50MB.generate_customer_profiles_table(100)
-    conn.importCustomers(customers)
+    dl.importCustomers(customers)
 
     terminals = dg_50MB.generate_terminal_profiles_table(100)
-    conn.importTerminals(terminals)
+    dl.importTerminals(terminals)
 
     x_y_terminals = [terminals.iloc[terminalIdx][['x_terminal_id','y_terminal_id']].values.astype(float) for terminalIdx in range(len(terminals))]
 
@@ -50,17 +59,20 @@ if __name__ == "__main__":
         terminalIds = dg_50MB.get_list_terminals_within_radius(customer, x_y_terminals, 0.2)
 
         #aggiungere i terminals per customer
-        conn.importCustomerTerminals(customer, terminalIds)
+        dl.importCustomerTerminals(customer, terminalIds)
         
         #aggiungere le transaction per customer
-        c_transactions = dg_50MB.generate_transactions_table(Customer(customer, terminalIds))
-        conn.importCustomerTransactions(c_transactions)
+        c_transactions = dg_50MB.generate_transactions_table(Customer(customer, terminalIds), "2024-01-01", 55)
+        dl.importCustomerTransactions(c_transactions)
+        
+        #extended transactions' attributes
+        de.extendTransactions()
 
     print("completato")
     
 
-    '''
-    MATCH (c:Customer), (t:Terminal)
-WHERE distance(c.x, c.y, t.x, t.y) < $distance_threshold
+'''
+MATCH (c:Customer), (t:Terminal)
+WHERE t.x - c.x < $distance_threshold and t.
 CREATE (c)-[:CONNECTED_TO {distance: distance(c.x, c.y, t.x, t.y)}]->(t)
 '''
