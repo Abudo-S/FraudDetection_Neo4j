@@ -119,5 +119,17 @@ class DataElaborator():
 
     '''pt.d2
     '''
-    def extendCustomers():
+    def extendCustomers(self):
         return
+    
+    '''
+    match (n) detach delete n
+    '''
+    def resetDB(self):
+        query = "MATCH "
+        query += f"(n) detach delete n"
+        
+        return self.run(query)
+    
+    def closeDriver(self):
+        self._driver.close()

@@ -27,13 +27,57 @@ class Customer ():
         self.mean_nb_tx_per_day = customer['mean_nb_tx_per_day']
         self.available_terminals = terminalIds
 
+def generateAndImportDataSet(dl:DataLoader, dg: DataGenerator):
+
+    try:
+        customers = pd.DataFrame()
+        while True:
+            customers_partial = dg.generate_customer_profiles_table(100)
+            if customers_partial is None: #se è stata superata la soglia di bits
+                break
+            customers = pd.concat([customers, customers_partial])
+        
+        dl.importCustomers(customers)
+
+        terminals = pd.DataFrame()
+        while True:
+            terminals_partial = dg.generate_terminal_profiles_table(100)
+            if terminals_partial is None: #se è stata superata la soglia di bits
+                    break
+            terminals = pd.concat([terminals, terminals_partial])
+
+        dl.importTerminals(terminals)
+
+        x_y_terminals = [terminals.iloc[terminalIdx][['x_terminal_id','y_terminal_id']].values.astype(float) for terminalIdx in range(len(terminals))]
+        
+        for customerIdx in range(len(customers)):
+            customer = customers.iloc[customerIdx]
+            terminalIds = dg.get_list_terminals_within_radius(customer, x_y_terminals, 0.002)
+            
+            #aggiungere i terminals per customer
+            dl.importCustomerTerminals(customer, terminalIds)
+                
+            c_transactions = dg.generate_transactions_table(Customer(customer, terminalIds), "2024-01-01", 10)
+
+            if c_transactions is None: #se è stata superata la soglia di bits
+                break
+            
+            #aggiungere le transaction per customer
+            dl.importCustomerTransactions(c_transactions)
+    
+    except:
+        return False
+
+    return True
+
 
 if __name__ == "__main__":
     dl = DataLoader("neo4j+s://8c0e259c.databases.neo4j.io", "neo4j", "RspDn6pEiaKrLCm9GuhD5dnCWGzqQC3Z05uoCvFVVJw")
     de = DataElaborator("neo4j+s://8c0e259c.databases.neo4j.io", "neo4j", "RspDn6pEiaKrLCm9GuhD5dnCWGzqQC3Z05uoCvFVVJw")
-    dg_50MB = DataGenerator(53000000)
-    # dg_100MB = DataGenerator(106000000)
-    # dg_200MB = DataGenerator(212000000)
+    dg_50MB = DataGenerator(500) #53000000
+    dg_100MB = DataGenerator(106000000)
+    dg_200MB = DataGenerator(212000000)
+
     # conn.run(f"CREATE (:Customer {{CUSTOMER_ID: 0.0, location: [54.88135039273247, 71.51893663724195], mean_amount: 62.262520726806166, std_amount: 31.131260363403083}})")
     # print()
     # xy_custom = np.array([50, 24])
@@ -45,31 +89,17 @@ if __name__ == "__main__":
 
     # result = de.getFraudulantTransactionsPerTerminal()
     # print(result)
+    
+    if generateAndImportDataSet(dl, dg_50MB):
+        print("Dataset generato ed importato al DB")
+    else:
+        print("Errore durante la generazione o l'imporazione del dataset!")
 
-    customers = dg_50MB.generate_customer_profiles_table(100)
-    dl.importCustomers(customers)
-
-    terminals = dg_50MB.generate_terminal_profiles_table(100)
-    dl.importTerminals(terminals)
-
-    x_y_terminals = [terminals.iloc[terminalIdx][['x_terminal_id','y_terminal_id']].values.astype(float) for terminalIdx in range(len(terminals))]
-
-    for customerIdx in range(len(customers)):
-        customer = customers.iloc[customerIdx]
-        terminalIds = dg_50MB.get_list_terminals_within_radius(customer, x_y_terminals, 0.2)
-
-        #aggiungere i terminals per customer
-        dl.importCustomerTerminals(customer, terminalIds)
-        
-        #aggiungere le transaction per customer
-        c_transactions = dg_50MB.generate_transactions_table(Customer(customer, terminalIds), "2024-01-01", 55)
-        dl.importCustomerTransactions(c_transactions)
-        
-        #extended transactions' attributes
-        de.extendTransactions()
+    #extend transactions' attributes
+    de.extendTransactions()
+    de.closeDriver()
 
     print("completato")
-    
 
 '''
 MATCH (c:Customer), (t:Terminal)

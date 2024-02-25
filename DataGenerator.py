@@ -3,13 +3,29 @@ import pandas as pd
 import sys
 
 class DataGenerator:
+    customersQuote: int
+    terminalsQuote: int
+    transactionsQuote: int
 
+    '''
+    siccome la quota di bits per tabella non è determinata, allora le quote saranno tutte uguali.
+    una volta raggiunta la quota di bits per dataType, non verranno più generati i records relativi
+    '''
     def __init__(self, sizeInBits):
         self.size = sizeInBits
+
+        #specifica una quota per: customers, terminals e transactions
+        quote = sizeInBits/3
+        self.customersQuote = int(quote)
+        self.terminalsQuote = int(quote)
+        self.transactionsQuote = int(quote)
 
     '''Genera n terminals'''
     def generate_terminal_profiles_table(self, n_terminals:int, random_state=0):
         
+        if self.terminalsQuote <= 0:
+            return None
+
         np.random.seed(random_state)
             
         terminal_id_properties=[]
@@ -26,12 +42,17 @@ class DataGenerator:
         terminal_profiles_table = pd.DataFrame(terminal_id_properties, columns=['TERMINAL_ID',
                                                                         'x_terminal_id', 'y_terminal_id'])
         
+        self.terminalsQuote -= sys.getsizeof(terminal_profiles_table)
+
         return terminal_profiles_table
 
 
     '''Genera n customers'''
     def generate_customer_profiles_table(self, n_customers:int, random_state=0):
         
+        if self.customersQuote <= 0:
+            return None
+
         np.random.seed(random_state)
             
         customer_id_properties=[]
@@ -57,13 +78,13 @@ class DataGenerator:
                                                                         'mean_amount', 'std_amount',
                                                                         'mean_nb_tx_per_day'])
 
-        #print(sys.getsizeof(customer_profiles_table))
+        self.customersQuote -= sys.getsizeof(customer_profiles_table)
 
         return customer_profiles_table
 
     '''Restituisce i terminals usabili da un customer basando sulla posizione geografica tra customer e terminal nel raggio r'''
     def get_list_terminals_within_radius(self, customer_profile, x_y_terminals, r):
-        
+
         # Use numpy arrays in the following to speed up computations
         
         # Location (x,y) of customer as numpy array
@@ -78,13 +99,16 @@ class DataGenerator:
         
         # Get the indices of terminals which are at a distance less than r
         available_terminals = list(np.where(dist_x_y<r)[0])
-        
+
         # Return the list of terminal IDs
         return available_terminals
 
     '''Genera le transactions di nb_days per customer'''
     def generate_transactions_table(self, customer_profile, start_date = "2018-04-01", nb_days = 10):
         
+        if self.transactionsQuote <= 0:
+            return None
+
         customer_transactions = []
         
         np.random.seed(int(customer_profile.CUSTOMER_ID))
@@ -131,4 +155,6 @@ class DataGenerator:
             customer_transactions['TX_DATETIME'] = pd.to_datetime(customer_transactions["TX_TIME_SECONDS"], unit='s', origin=start_date)
             customer_transactions=customer_transactions[['TX_DATETIME','CUSTOMER_ID', 'TERMINAL_ID', 'TX_AMOUNT','TX_TIME_SECONDS', 'TX_TIME_DAYS']]
         
+        self.transactionsQuote -= sys.getsizeof(customer_transactions)
+
         return customer_transactions  
