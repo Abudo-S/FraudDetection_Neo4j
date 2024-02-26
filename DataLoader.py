@@ -58,7 +58,7 @@ class DataLoader:
             self.run(query)
     
     ''' 
-    Create (trans:Transaction{TransID: 50});
+    Create (trans:Transaction{TransID: 50, datetime: '2024-01-01', amount: 50.2, isFraudulent: false});
     Match (c:Customer {CustomerID:72}), (trans:Transaction{TransID: 50}), (t:Terminal{TermID})
     Create (c)-[:Invoke]->(trans)-[:On]->(t)
     '''
@@ -72,7 +72,8 @@ class DataLoader:
             query = f"CREATE (:Transaction {{" \
                     f"TransID: {trans_id}, " \
                     f"datetime: '{row['TX_DATETIME']}', " \
-                    f"amount: {row['TX_AMOUNT']}" \
+                    f"amount: {row['TX_AMOUNT']}, " \
+                    f"isFraudulent: false" \
                     f"}}); "
             
             self.run(query)
