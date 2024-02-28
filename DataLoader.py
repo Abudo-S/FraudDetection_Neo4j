@@ -13,6 +13,9 @@ class DataLoader:
         self._driver.execute_query(query)
         self._driver.close()
 
+    '''
+    CREATE (:Customer{CustomerID: x, geo_location: [x, y], spending_amount: x, spending_frequency: x})
+    '''
     def importCustomers(self, customers:pd.DataFrame):
         query = "CREATE "
         for elementIdx in range(len(customers)):
@@ -29,6 +32,9 @@ class DataLoader:
         
         self.run(query)
 
+    '''
+    CREATE (:Terminal{TermID: x, geo_location: [x, y]})
+    '''
     def importTerminals(self, terminals):
         query = "CREATE "
         for elementIdx in range(len(terminals)):
