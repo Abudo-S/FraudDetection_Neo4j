@@ -11,11 +11,11 @@ class DataGenerator:
     siccome la quota di bits per tabella non è determinata, allora le quote saranno tutte uguali.
     una volta raggiunta la quota di bits per dataType, non verranno più generati i records relativi
     '''
-    def __init__(self, sizeInBits):
-        self.size = sizeInBits
+    def __init__(self, sizeInBytes):
+        self.size = sizeInBytes
 
         #specifica una quota per: customers, terminals e transactions
-        quote = sizeInBits/3
+        quote = sizeInBytes/3
         self.customersQuote = int(quote)
         self.terminalsQuote = int(quote)
         self.transactionsQuote = int(quote)

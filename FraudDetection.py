@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     dl = DataLoader(uri, user, password)
     de = DataElaborator(uri, user, password)
-
+    #de.resetDB()
     dg_50MB = DataGenerator(20000) #53000000
     dg_100MB = DataGenerator(106000000)
     dg_200MB = DataGenerator(212000000)
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     result = de.getCustomerLastMonthLimit()
     print(result)
 
-    result = de.getFraudulantTransactionsPerTerminal()
+    result = de.getFraudulentTransactionsPerTerminal()
     print(result)
         
     #extend customers' relationships

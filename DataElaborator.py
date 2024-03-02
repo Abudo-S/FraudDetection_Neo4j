@@ -72,7 +72,7 @@ class DataElaborator():
     return t.TermID, tx.amount, threshold
     '''
     @timerEvaluationDecorator
-    def getFraudulantTransactionsPerTerminal(self):
+    def getFraudulentTransactionsPerTerminal(self):
         query = "MATCH "
         query += f"(t:Terminal) -[:On]- (tx:Transaction) where tx.datetime > '{str(datetime.datetime.now().date() - datetime.timedelta(days=31))}' "\
                 f"with t, 0.2 * max(tx.amount) as threshold, collect(tx.TransID) as transactionIds "\
@@ -163,7 +163,7 @@ class DataElaborator():
 
         if executeFraudulantTransMarker:
             #prepara le transactions fraudulente supponendo che getFraudulantTransactionsPerTerminal() non è stato chiamato:
-            print(self.getFraudulantTransactionsPerTerminal())
+            print(self.getFraudulentTransactionsPerTerminal())
 
         query = "Match "
         query += f"(trans:Transaction) with trans.period as period, count(trans) as numPeriodTrans, collect(trans.TransID) as periodTransIds "\
