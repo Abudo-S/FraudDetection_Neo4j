@@ -37,6 +37,7 @@ def generateAndImportDataSet(dl:DataLoader, dg: DataGenerator):
                 break
             customers = pd.concat([customers, customers_partial])
         
+        #customers.to_csv("customers.csv")
         dl.importCustomers(customers)
 
         terminals = pd.DataFrame()
@@ -46,6 +47,7 @@ def generateAndImportDataSet(dl:DataLoader, dg: DataGenerator):
                     break
             terminals = pd.concat([terminals, terminals_partial])
 
+        #terminals.to_csv("terminals.csv")
         dl.importTerminals(terminals)
 
         x_y_terminals = [terminals.iloc[terminalIdx][['x_terminal_id','y_terminal_id']].values.astype(float) for terminalIdx in range(len(terminals))]
@@ -77,15 +79,16 @@ def generateAndImportDataSet(dl:DataLoader, dg: DataGenerator):
 
 
 if __name__ == "__main__":
-    #uri = "neo4j+s://8c0e259c.databases.neo4j.io"
-    uri = "neo4j://localhost"
+    #uri = "neo4j+s://8c0e259c.databases.neo4j.io" #remote
+    uri = "neo4j://localhost" #local
     user = "neo4j"
     password = "RspDn6pEiaKrLCm9GuhD5dnCWGzqQC3Z05uoCvFVVJw"
 
     dl = DataLoader(uri, user, password)
     de = DataElaborator(uri, user, password)
-    #de.resetDB()
-    dg_50MB = DataGenerator(500) #53000000
+
+    dg_demo = DataGenerator(500000)
+    dg_50MB = DataGenerator(53000000)
     dg_100MB = DataGenerator(106000000)
     dg_200MB = DataGenerator(212000000)
 
@@ -96,7 +99,7 @@ if __name__ == "__main__":
     # result = xy_custom - xy_terminals
     
     de.resetDB()
-    if generateAndImportDataSet(dl, dg_50MB):
+    if generateAndImportDataSet(dl, dg_demo):
         print("Dataset generato ed importato al DB con successo")
     else:
         print("Errore durante la generazione o l'imporazione del dataset!")

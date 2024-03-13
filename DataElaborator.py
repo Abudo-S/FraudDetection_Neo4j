@@ -83,14 +83,14 @@ class DataElaborator():
         return self.run(query)
     
     '''pt.c
-        match (c:Customer {id: 1})-[:Use*2..2]-(:Terminal)-[:Use]-(c1:Customer) where c <> c1 return c, c1
-
+        match (c:Customer {CustomerID: 1})-[:Use*2..2]-(:Terminal)-[:Use]-(c1:Customer) where c <> c1 return c, c1
+        #in case of huge datasets we need to add [limit n]
         #match (c1:Customer) -[:Use*1..3]- (c2:Customer) return c1, c2
     '''
     @timerEvaluationDecorator
     def getCocustomerOfCustomer(self, customerId:int, degree:int = 3):
         query = "MATCH "
-        query += f"(c:Customer {{id: {customerId}}}) -[:Use*{degree - 1}..{degree - 1}]-(:Terminal)-[:Use]-(c1:Customer) "\
+        query += f"(c:Customer {{CustomerID: {customerId}}}) -[:Use*{degree - 1}..{degree - 1}]-(:Terminal)-[:Use]-(c1:Customer) "\
                 f"where c <> c1 return c, c1 "
         
         return self.run(query)
