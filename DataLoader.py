@@ -93,5 +93,32 @@ class DataLoader:
                 query += '; '
                 
             self.run(query)
+
+    '''
+    CREATE INDEX customer_customerID_index FOR (n:Customer) ON (n.CustomerID)
+    creato getCocustomerOfCustomer [PT.c]
+    '''
+    def addCustomerIndex(self):
+        query = "CREATE INDEX customer_customerID_index FOR (n:Customer) ON (n.CustomerID)"
+
+        self.run(query)
+
+    '''
+    CREATE INDEX terminal_termID_index FOR (n:Terminal) ON (n.TermID)
+    creato per getFraudulentTransactionsPerTerminal [PT.b]
+    '''
+    def addTerminalIndex(self):
+        query = "CREATE INDEX terminal_termID_index FOR (n:Terminal) ON (n.TermID)"
+
+        self.run(query)
+
+    '''
+    CREATE INDEX transaction_datetime_index FOR (n:Transaction) ON (n.datetime, n.amount)
+    creato per getFraudulentTransactionsPerTerminal [PT.b]
+    '''
+    def addTransactionIndex(self):
+        query = "CREATE INDEX transaction_datetime_index FOR (n:Transaction) ON (n.datetime, n.amount)"
+
+        self.run(query)
         
 

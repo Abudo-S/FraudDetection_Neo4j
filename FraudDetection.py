@@ -57,13 +57,19 @@ def generateAndImportDataSet(dl:DataLoader, dg: DataGenerator):
             #aggiungere i terminals per customer
             dl.importCustomerTerminals(customer, terminalIds)
                 
-            c_transactions = dg.generate_transactions_table(Customer(customer, terminalIds), "2024-02-01", 30)
+            c_transactions = dg.generate_transactions_table(Customer(customer, terminalIds), "2024-02-13", 30)
 
             if c_transactions is None: #se è stata superata la soglia di bits
                 break
             
             #aggiungere le transaction per customer
             dl.importCustomerTransactions(c_transactions)
+        
+        #aggiungere gli indici
+        dl.addCustomerIndex()
+        dl.addTerminalIndex()
+        dl.addTransactionIndex()
+            
     except:
         return False
 
@@ -71,14 +77,15 @@ def generateAndImportDataSet(dl:DataLoader, dg: DataGenerator):
 
 
 if __name__ == "__main__":
-    uri = "neo4j+s://8c0e259c.databases.neo4j.io"
+    #uri = "neo4j+s://8c0e259c.databases.neo4j.io"
+    uri = "neo4j://localhost"
     user = "neo4j"
     password = "RspDn6pEiaKrLCm9GuhD5dnCWGzqQC3Z05uoCvFVVJw"
 
     dl = DataLoader(uri, user, password)
     de = DataElaborator(uri, user, password)
     #de.resetDB()
-    dg_50MB = DataGenerator(20000) #53000000
+    dg_50MB = DataGenerator(500) #53000000
     dg_100MB = DataGenerator(106000000)
     dg_200MB = DataGenerator(212000000)
 
@@ -88,26 +95,27 @@ if __name__ == "__main__":
     # xy_terminals = np.array([[5, 2], [1, 2], [20, 10]])
     # result = xy_custom - xy_terminals
     
+    de.resetDB()
     if generateAndImportDataSet(dl, dg_50MB):
         print("Dataset generato ed importato al DB con successo")
     else:
         print("Errore durante la generazione o l'imporazione del dataset!")
 
 
-    result = de.getCustomerLastMonthLimit()
-    print(result)
+    # result = de.getCustomerLastMonthLimit()
+    # print(result)
 
-    result = de.getFraudulentTransactionsPerTerminal()
-    print(result)
+    # result = de.getFraudulentTransactionsPerTerminal()
+    # print(result)
         
-    #extend customers' relationships
-    de.extendCustomers()
+    # #extend customers' relationships
+    # de.extendCustomers()
 
-    #extend transactions' attributes
-    de.extendTransactions()
+    # #extend transactions' attributes
+    # de.extendTransactions()
 
-    result = de.getFraudulentTransPerPeriod(False)
-    print(result)
+    # result = de.getFraudulentTransPerPeriod(False)
+    # print(result)
     
     de.closeDriver()
 
